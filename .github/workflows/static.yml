@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>价格占比环形图分析器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2a4a7c, #4a6a9c);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: 900px;
+            width: 100%;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            flex: 1;
+            min-width: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .chart-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            margin: 10px 0;
+        }
+        
+        .donut-chart {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .chart-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .percentage {
+            font-size: 3.2rem;
+            background: linear-gradient(45deg, #1a2a6c, #2a4a7c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 0 5px;
+        }
+        
+        .arrow {
+            font-size: 2.2rem;
+            margin-right: 5px;
+        }
+        
+        .up {
+            color: #3498db; /* 蓝色箭头 */
+        }
+        
+        .down {
+            color: #e74c3c;
+        }
+        
+        .data-form {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            flex: 1;
+            min-width: 380px;
+        }
+        
+        .form-title {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .price-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .price-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 18px;
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+        
+        .price-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #7f8c8d;
+        }
+        
+        .price-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .reset-btn {
+            background: #f1f2f6;
+            color: #34495e;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .calculate-btn:hover {
+            background: linear-gradient(45deg, #2980b9, #3498db);
+        }
+        
+        .reset-btn:hover {
+            background: #e4e5e9;
+        }
+        
+        .deployment-info {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+        }
+        
+        .deployment-info a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .deployment-info a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 850px) {
+            .dashboard {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .chart-container, .data-form {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- 环形图展示区域 -->
+        <div class="chart-container">
+            <h2 class="chart-title">价格占比环形图</h2>
+            <div class="chart-wrapper">
+                <svg class="donut-chart" viewBox="0 0 300 300">
+                    <!-- 背景环 -->
+                    <circle cx="150" cy="150" r="120" fill="none" stroke="#f0f0f0" stroke-width="30"></circle>
+                    <!-- 动态进度环 -->
+                    <circle id="progress-ring" cx="150" cy="150" r="120" fill="none" stroke="#3498db" stroke-width="30" 
+                            stroke-dasharray="754" stroke-dashoffset="754" stroke-linecap="round"></circle>
+                </svg>
+                <div class="chart-center">
+                    <span id="arrow" class="arrow up"><i class="fas fa-arrow-up"></i></span>
+                    <span id="percentage" class="percentage">0%</span>
+                </div>
+            </div>
+            
+            <div class="price-cards">
+                <div class="price-card">
+                    <h3>低价数量</h3>
+                    <div id="low-price-value" class="value">0</div>
+                </div>
+                <div class="price-card">
+                    <h3>平价数量</h3>
+                    <div id="fair-price-value" class="value">0</div>
+                </div>
+                <div class="price-card">
+                    <h3>高价数量</h3>
+                    <div id="high-price-value" class="value">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 数据输入区域 -->
+        <div class="data-form">
+            <h2 class="form-title">价格数据输入</h2>
+            <div class="input-group">
+                <label for="low-price">低价产品数量：</label>
+                <input type="number" id="low-price" min="0" placeholder="输入低价产品数量" value="15">
+            </div>
+            
+            <div class="input-group">
+                <label for="fair-price">平价产品数量：</label>
+                <input type="number" id="fair-price" min="0" placeholder="输入平价产品数量" value="25">
+            </div>
+            
+            <div class="input-group">
+                <label for="high-price">高价产品数量：</label>
+                <input type="number" id="high-price" min="0" placeholder="输入高价产品数量" value="10">
+            </div>
+            
+            <div class="btn-group">
+                <button class="calculate-btn" id="calculate">
+                    <i class="fas fa-calculator"></i> 计算占比
+                </button>
+                <button class="reset-btn" id="reset">
+                    <i class="fas fa-redo"></i> 重置数据
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="deployment-info">
+        此应用已部署在Netlify平台，可永久访问：<br>
+        <a href="https://price-chart-analyzer.netlify.app" target="_blank">https://price-chart-analyzer.netlify.app</a><br>
+        将本页保存为HTML文件后，也可在本地直接打开使用
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const lowPriceInput = document.getElementById('low-price');
+            const fairPriceInput = document.getElementById('fair-price');
+            const highPriceInput = document.getElementById('high-price');
+            const calculateBtn = document.getElementById('calculate');
+            const resetBtn = document.getElementById('reset');
+            const progressRing = document.getElementById('progress-ring');
+            const percentageDisplay = document.getElementById('percentage');
+            const arrowDisplay = document.getElementById('arrow');
+            const lowPriceValue = document.getElementById('low-price-value');
+            const fairPriceValue = document.getElementById('fair-price-value');
+            const highPriceValue = document.getElementById('high-price-value');
+            
+            let lastPercentage = 0;
+            
+            // 初始计算
+            calculatePercentage();
+            
+            // 计算占比
+            calculateBtn.addEventListener('click', calculatePercentage);
+            
+            // 重置数据
+            resetBtn.addEventListener('click', function() {
+                lowPriceInput.value = '';
+                fairPriceInput.value = '';
+                highPriceInput.value = '';
+                
+                lowPriceValue.textContent = '0';
+                fairPriceValue.textContent = '0';
+                highPriceValue.textContent = '0';
+                
+                percentageDisplay.textContent = '0%';
+                arrowDisplay.className = 'arrow';
+                arrowDisplay.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                
+                // 重置环形图
+                progressRing.style.strokeDashoffset = '754';
+                lastPercentage = 0;
+            });
+            
+            // 计算百分比函数
+            function calculatePercentage() {
+                const low = parseInt(lowPriceInput.value) || 0;
+                const fair = parseInt(fairPriceInput.value) || 0;
+                const high = parseInt(highPriceInput.value) || 0;
+                
+                const total = low + fair + high;
+                
+                if (total === 0) {
+                    alert('请输入有效的产品数量！');
+                    return;
+                }
+                
+                // 更新显示值
+                lowPriceValue.textContent = low;
+                fairPriceValue.textContent = fair;
+                highPriceValue.textContent = high;
+                
+                // 计算占比
+                const percentage = Math.round(((low + fair) / total) * 100);
+                
+                // 更新环形图
+                updateChart(percentage);
+                
+                // 更新百分比显示
+                percentageDisplay.textContent = percentage + '%';
+                
+                // 更新箭头显示
+                if (percentage > lastPercentage) {
+                    arrowDisplay.className = 'arrow up';
+                    arrowDisplay.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                } else if (percentage < lastPercentage) {
+                    arrowDisplay.className = 'arrow down';
+                    arrowDisplay.innerHTML = '<i class="fas fa-arrow-down"></i>';
+                } else {
+                    arrowDisplay.className = 'arrow up';
+                    arrowDisplay.innerHTML = '<i class="fas fa-arrow-up"></i>';
+                }
+                
+                lastPercentage = percentage;
+            }
+            
+            // 更新环形图
+            function updateChart(percentage) {
+                // 计算进度环的dashoffset值
+                const circumference = 754; // 2 * π * r (2 * 3.14 * 120)
+                const offset = circumference - (percentage / 100) * circumference;
+                
+                // 动画效果
+                progressRing.style.transition = 'stroke-dashoffset 1s ease-in-out, stroke 0.5s ease';
+                progressRing.style.strokeDashoffset = offset;
+                
+                // 根据百分比调整颜色
+                if (percentage >= 80) {
+                    progressRing.style.stroke = '#2ecc71'; // 绿色
+                } else if (percentage >= 60) {
+                    progressRing.style.stroke = '#3498db'; // 蓝色
+                } else if (percentage >= 40) {
+                    progressRing.style.stroke = '#f39c12'; // 橙色
+                } else {
+                    progressRing.style.stroke = '#e74c3c'; // 红色
+                }
+            }
+        });
+    </script>
+</body>
+</html>
